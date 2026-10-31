@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Slip Maker - Durga Enterprises</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 550px;
+            box-sizing: border-box;
+        }
+        h2 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="tel"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccd0d5;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: var(--primary-color);
+        }
+        .add-item-box {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px dashed #ccc;
+        }
+        .add-item-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .add-item-row input {
+            flex: 2;
+        }
+        .add-item-row input.small {
+            flex: 1;
+        }
+        .btn-add {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .voice-section {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .btn-voice {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(255, 77, 77, 0.2);
+            transition: background 0.2s;
+        }
+        .btn-voice:hover {
+            background-color: #e60000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #e1e4e8;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f3f5;
+            color: #495057;
+        }
+        .total-row {
+            font-weight: bold;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn-download { background-color: var(--primary-color); }
+        .btn-whatsapp { background-color: var(--success-color); }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Digital Slip Maker</h2>
+    
+    <div class="form-group">
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName" placeholder="Enter customer name">
+    </div>
+    
+    <div class="form-group">
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="tel" id="phoneNumber" placeholder="Enter phone number">
+    </div>
+
+    <div class="add-item-box">
+        <label>Add Item Manually:</label>
+        <div class="add-item-row">
+            <input type="text" id="itemName" placeholder="Item Name">
+            <input type="number" id="itemQty" class="small" placeholder="Qty" value="1" min="1">
+            <input type="number" id="itemPrice" class="small" placeholder="Price" min="0">
+        </div>
+        <button class="btn-add" onclick="addItem()">+ Add Item to Slip</button>
+    </div>
+
+    <div class="voice-section">
+        <button id="voiceBtn" class="btn-voice" onclick="startVoiceInput()">🎙️ Voice Input (Add Item)</button>
+    </div>
+
+    <h3>Item List</h3>
+    <table id="itemTable">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Qty</th>
+                <th>Price (₹)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Dynamic rows will appear here -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" class="total-row">Total Amount:</td>
+                <td colspan="2" id="totalAmount">₹0</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="action-buttons">
+        <button class="btn btn-download" onclick="downloadSlip()">Download Slip</button>
+        <button class="btn btn-whatsapp" onclick="sendWhatsApp()">Send via WhatsApp</button>
+    </div>
+
+    <div class="footer">Powered by Durga Enterprises</div>
+</div>
+
+<script>
+    let items = [
+        { name: "Sample Putty", qty: 1, price: 450 }
+    ];
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        let total = 0;
+
+        items.forEach((item, index) => {
+            let itemTotal = item.qty * item.price;
+            total += itemTotal;
+
+            let row = `<tr>
+                <td>${item.name}</td>
+                <td>${item.qty}</td>
+                <td>₹${itemTotal}</td>
+                <td><button class="btn-delete" onclick="deleteItem(${index})">✕</button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById('totalAmount').innerText = `₹${total}`;
+    }
+
+    function addItem() {
+        const name = document.getElementById('itemName').value.trim();
+        const qty = parseInt(document.getElementById('itemQty').value) || 1;
+        const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+
+        if (!name) {
+            alert("Please enter an item name.");
+            return;
+        }
+
+        items.push({ name, qty, price });
+        document.getElementById('itemName').value = '';
+        document.getElementById('itemPrice').value = '';
+        document.getElementById('itemQty').value = '1';
+        renderTable();
+    }
+
+    function deleteItem(index) {
+        items.splice(index, 1);
+        renderTable();
+    }
+
+    function startVoiceInput() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Voice input is not supported in this browser. Please use Google Chrome.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-IN';
+        const btn = document.getElementById('voiceBtn');
+        btn.innerText = "Listening...";
+        btn.style.backgroundColor = "#ffc107";
+
+        recognition.onresult = function(event) {
+            const speechResult = event.results[0][0].transcript.toLowerCase();
+            // Simple smart parser for voice: e.g., "2 paints for 500"
+            alert("Recognized: " + speechResult);
+            // You can add custom regex/parsing logic here if needed
+            btn.innerText = "🎙️ Voice Input (Add Item)";
+            btn.style.backgroundColor = "#ff4d4d";
+        };
+
+        recognition.onerror = function() {
+            btn.innerText = "🎙️ Voice Input (Add Item)";
+            btn.style.backgroundColor = "#ff4d4d";
+        };
+
+        recognition.onend = function() {
+            btn.innerText = "🎙️ Voice Input (Add Item)";
+            btn.style.backgroundColor = "#ff4d4d";
+        };
+
+        recognition.start();
+    }
+
+    function downloadSlip() {
+        const name = document.getElementById('customerName').value || "Customer";
+        if (items.length === 0) {
+            alert("Please add at least one item to download the slip.");
+            return;
+        }
+        window.print(); // Browser print dialog will format it cleanly as PDF/Print
+    }
+
+    function sendWhatsApp() {
+        const phone = document.getElementById('phoneNumber').value.trim();
+        const name = document.getElementById('customerName').value.trim() || "Customer";
+        
+        if (!phone) {
+            alert("Please enter a customer phone number first!");
+            return;
+        }
+        if (items.length === 0) {
+            alert("Please add items to the slip.");
+            return;
+        }
+
+        let total = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+        let message = `*DURGA ENTERPRISES*\nDigital Bill/Slip\n\nCustomer: ${name}\n------------------\n`;
+        
+        items.forEach((item, i) => {
+            message += `${i + 1}. ${item.name} (${item.qty} x ₹${item.price}) = ₹${item.qty * item.price}\n`;
+        });
+        
+        message += `------------------\n*Total Amount: ₹${total}*\n\nThank you for shopping with us!`;
+
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+    }
+
+    // Initial render
+    renderTable();
+</script>
+
+</body>
+</html>
