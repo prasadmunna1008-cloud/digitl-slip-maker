@@ -155,8 +155,8 @@
         .btn:hover {
             opacity: 0.9;
         }
-        .btn-download { background-color: var(--primary-color); }
-        .btn-whatsapp { background-color: var(--success-color); }
+        .btn-download { background-color: var(--success-color); }
+        .btn-whatsapp { background-color: #25d366; }
         .footer {
             text-align: center;
             margin-top: 20px;
@@ -185,13 +185,13 @@
         <div class="add-item-row">
             <input type="text" id="itemName" placeholder="Item Name">
             <input type="number" id="itemQty" class="small" placeholder="Qty" value="1" min="1">
-            <input type="number" id="itemPrice" class="small" placeholder="Price" min="0">
+            <input type="number" id="itemPrice" class="small" placeholder="Price (₹)" min="0" oninput="updateLiveTotal()">
         </div>
         <button class="btn-add" onclick="addItem()">+ Add Item to Slip</button>
     </div>
 
     <div class="voice-section">
-        <button id="voiceBtn" class="btn-voice" onclick="startVoiceInput()">🎙️ Voice Input (Add Item)</button>
+        <button id="voiceBtn" class="btn-voice" onclick="startVoiceInput()">🎙️ Voice Input (बोलकर जोड़ें)</button>
     </div>
 
     <h3>Item List</h3>
@@ -216,7 +216,7 @@
     </table>
 
     <div class="action-buttons">
-        <button class="btn btn-download" onclick="downloadSlip()">Download Slip</button>
+        <button class="btn btn-download" onclick="downloadExcel()">Download Excel</button>
         <button class="btn btn-whatsapp" onclick="sendWhatsApp()">Send via WhatsApp</button>
     </div>
 
@@ -224,9 +224,7 @@
 </div>
 
 <script>
-    let items = [
-        { name: "Sample Putty", qty: 1, price: 450 }
-    ];
+    let items = [];
 
     function renderTable() {
         const tbody = document.getElementById('tableBody');
@@ -234,13 +232,13 @@
         let total = 0;
 
         items.forEach((item, index) => {
-            let itemTotal = item.qty * item.price;
+            let itemTotal = (item.qty || 0) * (item.price || 0);
             total += itemTotal;
 
             let row = `<tr>
                 <td>${item.name}</td>
                 <td>${item.qty}</td>
-                <td>₹${itemTotal}</td>
+                <td><input type="number" value="${item.price || ''}" placeholder="Enter price" style="width: 80px; padding: 4px;" onchange="updatePrice(${index}, this.value)"></td>
                 <td><button class="btn-delete" onclick="deleteItem(${index})">✕</button></td>
             </tr>`;
             tbody.innerHTML += row;
@@ -266,9 +264,43 @@
         renderTable();
     }
 
+    function updatePrice(index, value) {
+        items[index].price = parseFloat(value) || 0;
+        renderTable();
+    }
+
     function deleteItem(index) {
         items.splice(index, 1);
         renderTable();
+    }
+
+    // स्मार्ट वॉइस इनपुट जो हिंदी और इंग्लिश दोनों को समझकर क्वांटिटी और नाम अलग कर लेगा
+    function parseVoiceText(text) {
+        text = text.toLowerCase().trim();
+        let numbers = text.match(/\d+/g);
+        let qty = 1;
+        let name = text;
+
+        if (numbers && numbers.length > 0) {
+            qty = parseInt(numbers[0]);
+            // शब्दों में से नंबर हटाकर सिर्फ आइटम का नाम रखना
+            name = text.replace(numbers[0], '').replace(/litre|liter|litre|bag|bags|kg|pcs|पीस|लीटर|बैग|बोरा/g, '').trim();
+        } else {
+            // यदि कोई शब्द में संख्या हो जैसे 'एक', 'दो'
+            if (text.includes('एक')) { qty = 1; name = text.replace('एक', ''); }
+            else if (text.includes('दो')) { qty = 2; name = text.replace('दो', ''); }
+            else if (text.includes('तीन')) { qty = 3; name = text.replace('तीन', ''); }
+            else if (text.includes('चार')) { qty = 4; name = text.replace('चार', ''); }
+        }
+
+        // नाम को थोड़ा सा साफ़ करना
+        name = name.replace(/litre|liter|bag|bags|kg|pcs|पीस|लीटर|बैग|बोरा/g, '').trim();
+        if (!name) name = text; // अगर खाली हो जाए तो पूरा बोल हुआ टेक्स्ट ले लो
+        
+        // नाम के पहले अक्षर बड़ा करना
+        name = name.charAt(0).toUpperCase() + name.slice(1);
+
+        return { name, qty };
     }
 
     function startVoiceInput() {
@@ -279,40 +311,64 @@
         }
 
         const recognition = new SpeechRecognition();
-        recognition.lang = 'en-IN';
+        recognition.lang = 'hi-IN'; // हिंदी और इंग्लिश मिक्स समझने के लिए
         const btn = document.getElementById('voiceBtn');
-        btn.innerText = "Listening...";
+        btn.innerText = "Listening... (बोलिए)";
         btn.style.backgroundColor = "#ffc107";
 
         recognition.onresult = function(event) {
-            const speechResult = event.results[0][0].transcript.toLowerCase();
-            // Simple smart parser for voice: e.g., "2 paints for 500"
-            alert("Recognized: " + speechResult);
-            // You can add custom regex/parsing logic here if needed
-            btn.innerText = "🎙️ Voice Input (Add Item)";
+            const speechResult = event.results[0][0].transcript;
+            const parsed = parseVoiceText(speechResult);
+            
+            // सीधे आइटम लिस्ट में जोड़ें (बिना प्राइस के)
+            items.push({ name: parsed.name, qty: parsed.qty, price: 0 });
+            renderTable();
+
+            btn.innerText = "🎙️ Voice Input (बोलकर जोड़ें)";
             btn.style.backgroundColor = "#ff4d4d";
         };
 
         recognition.onerror = function() {
-            btn.innerText = "🎙️ Voice Input (Add Item)";
+            btn.innerText = "🎙️ Voice Input (बोलकर जोड़ें)";
             btn.style.backgroundColor = "#ff4d4d";
         };
 
         recognition.onend = function() {
-            btn.innerText = "🎙️ Voice Input (Add Item)";
+            btn.innerText = "🎙️ Voice Input (बोलकर जोड़ें)";
             btn.style.backgroundColor = "#ff4d4d";
         };
 
         recognition.start();
     }
 
-    function downloadSlip() {
-        const name = document.getElementById('customerName').value || "Customer";
+    function downloadExcel() {
+        const customerName = document.getElementById('customerName').value || "Customer";
         if (items.length === 0) {
-            alert("Please add at least one item to download the slip.");
+            alert("Please add at least one item to export.");
             return;
         }
-        window.print(); // Browser print dialog will format it cleanly as PDF/Print
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += `Customer Name: ${customerName}\n`;
+        csvContent += `Phone Number: ${document.getElementById('phoneNumber').value}\n\n`;
+        csvContent += "Item Name,Quantity,Price (₹),Total (₹)\n";
+
+        let grandTotal = 0;
+        items.forEach(item => {
+            let rowTotal = item.qty * item.price;
+            grandTotal += rowTotal;
+            csvContent += `"${item.name}",${item.qty},${item.price},${rowTotal}\n`;
+        });
+
+        csvContent += `\n,,Grand Total,${grandTotal}`;
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${customerName}_slip.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function sendWhatsApp() {
@@ -328,11 +384,12 @@
             return;
         }
 
-        let total = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+        let total = items.reduce((sum, item) => sum + (item.qty * (item.price || 0)), 0);
         let message = `*DURGA ENTERPRISES*\nDigital Bill/Slip\n\nCustomer: ${name}\n------------------\n`;
         
         items.forEach((item, i) => {
-            message += `${i + 1}. ${item.name} (${item.qty} x ₹${item.price}) = ₹${item.qty * item.price}\n`;
+            let p = item.price || 0;
+            message += `${i + 1}. ${item.name} (${item.qty} x ₹${p}) = ₹${item.qty * p}\n`;
         });
         
         message += `------------------\n*Total Amount: ₹${total}*\n\nThank you for shopping with us!`;
@@ -347,5 +404,3 @@
 
 </body>
 </html>
-      
-           
